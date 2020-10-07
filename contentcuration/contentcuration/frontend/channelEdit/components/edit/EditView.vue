@@ -1,6 +1,6 @@
 <template>
 
-  <VContainer ref="editview" fluid fill-height class="pa-0">
+  <VContainer ref="editview" fluid class="wrapper pa-0" @scroll="scroll">
     <VContainer v-if="!nodeIds.length" fluid>
       <VLayout justify-center align-center fill-height>
         <VFlex grow class="text-xs-center title grey--text">
@@ -10,48 +10,50 @@
     </VContainer>
     <VLayout v-else>
       <VFlex grow>
-        <VTabs v-model="currentTab" slider-color="primary" height="60px">
-          <!-- Details tab -->
-          <VTab ref="detailstab" :href="`#${tabs.DETAILS}`">
-            {{ $tr(tabs.DETAILS) }}
-            <VTooltip v-if="!areDetailsValid || !areFilesValid" top>
-              <template v-slot:activator="{ on }">
-                <Icon color="red" dark small class="ml-2" v-on="on">
-                  error
-                </Icon>
-              </template>
-              <span>{{ $tr('invalidFieldsToolTip') }}</span>
-            </VTooltip>
-          </VTab>
+        <ToolBar v-if="showTabs" :flat="!tabsElevated" class="tabs" color="white">
+          <Tabs v-model="currentTab" slider-color="primary" height="64px">
+            <!-- Details tab -->
+            <VTab ref="detailstab" :href="`#${tabs.DETAILS}`">
+              {{ $tr(tabs.DETAILS) }}
+              <VTooltip v-if="!areDetailsValid || !areFilesValid" top>
+                <template v-slot:activator="{ on }">
+                  <Icon color="red" dark small class="ml-2" v-on="on">
+                    error
+                  </Icon>
+                </template>
+                <span>{{ $tr('invalidFieldsToolTip') }}</span>
+              </VTooltip>
+            </VTab>
 
-          <!-- Questions tab -->
-          <VTab v-if="showQuestionsTab" ref="questiontab" :href="`#${tabs.QUESTIONS}`">
-            {{ $tr(tabs.QUESTIONS) }}
-            <VTooltip v-if="!areAssessmentItemsValid" top>
-              <template v-slot:activator="{ on }">
-                <Icon color="red" dark v-on="on">
-                  error
-                </Icon>
-              </template>
-              <span>{{ $tr('invalidFieldsToolTip') }}</span>
-            </VTooltip>
-            <VChip v-else color="gray" dark>
-              {{ assessmentItemsCount }}
-            </VChip>
-          </VTab>
+            <!-- Questions tab -->
+            <VTab v-if="showQuestionsTab" ref="questiontab" :href="`#${tabs.QUESTIONS}`">
+              {{ $tr(tabs.QUESTIONS) }}
+              <VTooltip v-if="!areAssessmentItemsValid" top>
+                <template v-slot:activator="{ on }">
+                  <Icon color="red" dark v-on="on">
+                    error
+                  </Icon>
+                </template>
+                <span>{{ $tr('invalidFieldsToolTip') }}</span>
+              </VTooltip>
+              <VChip v-else color="gray" dark>
+                {{ assessmentItemsCount }}
+              </VChip>
+            </VTab>
 
-          <!-- Related resources tab -->
-          <VTab
-            v-if="showRelatedResourcesTab"
-            ref="related-resources-tab"
-            :href="`#${tabs.RELATED}`"
-          >
-            {{ $tr(tabs.RELATED) }}
-            <VChip color="gray" dark>
-              {{ relatedResourcesCount }}
-            </VChip>
-          </VTab>
-        </VTabs>
+            <!-- Related resources tab -->
+            <VTab
+              v-if="showRelatedResourcesTab"
+              ref="related-resources-tab"
+              :href="`#${tabs.RELATED}`"
+            >
+              {{ $tr(tabs.RELATED) }}
+              <VChip color="gray" dark>
+                {{ relatedResourcesCount }}
+              </VChip>
+            </VTab>
+          </Tabs>
+        </ToolBar>
         <VContainer fluid>
           <VTabsItems v-model="currentTab">
             <VTabItem :key="tabs.DETAILS" ref="detailswindow" :value="tabs.DETAILS" lazy>
@@ -90,6 +92,8 @@
   import AssessmentTab from '../../components/AssessmentTab/AssessmentTab';
   import RelatedResourcesTab from '../../components/RelatedResourcesTab/RelatedResourcesTab';
   import DetailsTabView from './DetailsTabView';
+  import Tabs from 'shared/views/Tabs';
+  import ToolBar from 'shared/views/ToolBar';
   import { ContentKindsNames } from 'shared/leUtils/ContentKinds';
 
   export default {
@@ -98,12 +102,10 @@
       DetailsTabView,
       AssessmentTab,
       RelatedResourcesTab,
+      Tabs,
+      ToolBar,
     },
     props: {
-      isClipboard: {
-        type: Boolean,
-        default: false,
-      },
       nodeIds: {
         type: Array,
         default: () => [],
@@ -116,6 +118,7 @@
     data() {
       return {
         currentTab: null,
+        tabsElevated: false,
       };
     },
     computed: {
@@ -132,7 +135,6 @@
       nodes() {
         return this.getContentNodes(this.nodeIds);
       },
-
       noItemText() {
         return this.$tr('noItemsToEditText');
       },
@@ -142,13 +144,14 @@
       oneSelected() {
         return this.nodes.length === 1;
       },
+      showTabs() {
+        return this.oneSelected && this.nodes[0].kind !== ContentKindsNames.TOPIC;
+      },
       showQuestionsTab() {
         return this.oneSelected && this.firstNode && this.firstNode.kind === 'exercise';
       },
       showRelatedResourcesTab() {
-        return (
-          this.oneSelected && !this.isClipboard && this.firstNode && this.firstNode.kind !== 'topic'
-        );
+        return this.oneSelected && this.firstNode && this.firstNode.kind !== 'topic';
       },
       countText() {
         const totals = reduce(
@@ -217,7 +220,12 @@
       },
     },
     created() {
-      this.currentTab = this.tab ? this.tab : TabNames.DETAILS;
+      this.currentTab = this.tab && this.nodeIds.length <= 1 ? this.tab : TabNames.DETAILS;
+    },
+    methods: {
+      scroll(e) {
+        this.tabsElevated = e.target.scrollTop > 0;
+      },
     },
     $trs: {
       [TabNames.DETAILS]: 'Details',
@@ -236,6 +244,12 @@
 
 <style lang="less" scoped>
 
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
   .container {
     width: unset;
   }
@@ -244,10 +258,6 @@
     padding: 10px;
     margin: 15px;
     font-weight: bold;
-  }
-
-  .v-tabs {
-    border-bottom: 1px solid var(--v-grey-lighten3);
   }
 
   .v-tabs__div {
@@ -267,6 +277,11 @@
   .error-icon {
     margin-bottom: 20px;
     font-size: 45pt;
+  }
+  .wrapper {
+    min-width: 100%;
+    max-height: inherit;
+    overflow: auto;
   }
 
 </style>
