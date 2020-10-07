@@ -196,7 +196,7 @@ class UserFilteredManyToManyPrimaryKeyField(DotPathValueMixin, ManyRelatedField)
 class UserFilteredPrimaryKeyRelatedField(PrimaryKeyRelatedField):
     def __init__(self, edit=True, **kwargs):
         self.edit = edit
-        super().__init__(**kwargs)
+        super(PrimaryKeyRelatedField, self).__init__(**kwargs)
 
     @classmethod
     def many_init(cls, *args, **kwargs):

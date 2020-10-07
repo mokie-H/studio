@@ -61,7 +61,7 @@ def cache_stampede(expire, beta=1):
                 delta = cached["DELTA"]
                 if (-delta * math.log(random.random())) < ttl:
                     return metadata  # Cache hit.
-            metadata, delta = timer(*args, *kwargs)
+            metadata, delta = timer(*args, **kwargs)
             cached_info = {
                 "CALCULATING": False,
                 "METADATA": metadata,
