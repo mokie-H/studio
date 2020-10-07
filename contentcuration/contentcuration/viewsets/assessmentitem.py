@@ -12,7 +12,8 @@ from django_s3_storage.storage import S3Error
 from le_utils.constants import exercises
 from le_utils.constants import format_presets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.serializers import ValidationError
+from rest_framework.serializers import ValidationError, ModelSerializer
+from rest_framework import viewsets
 
 from contentcuration.models import AssessmentItem
 from contentcuration.models import Channel
@@ -20,6 +21,7 @@ from contentcuration.models import ContentNode
 from contentcuration.models import File
 from contentcuration.models import generate_object_storage_name
 from contentcuration.models import User
+from contentcuration.models import Answers
 from contentcuration.viewsets.base import BulkCreateMixin
 from contentcuration.viewsets.base import BulkListSerializer
 from contentcuration.viewsets.base import BulkModelSerializer
@@ -117,27 +119,20 @@ class AssessmentListSerializer(BulkListSerializer):
         self.set_files(all_objects)
         return all_objects
 
+class AnswersSerializer(ModelSerializer):
+    class Meta:
+        model = Answers
+        fields = '__all__'
 
 class AssessmentItemSerializer(BulkModelSerializer):
     # This is set as editable=False on the model so by default DRF does not allow us
     # to set it.
     assessment_id = UUIDRegexField()
+    answers = AnswersSerializer(many=True, read_only=True) 
 
     class Meta:
         model = AssessmentItem
-        fields = (
-            "question",
-            "type",
-            "answers",
-            "contentnode",
-            "assessment_id",
-            "hints",
-            "raw_data",
-            "order",
-            "source_url",
-            "randomize",
-            "deleted",
-        )
+        fields = '__all__'
         list_serializer_class = AssessmentListSerializer
         # Use the contentnode and assessment_id as the lookup field for updates
         update_lookup_field = ("contentnode", "assessment_id")
@@ -183,7 +178,6 @@ class AssessmentItemViewSet(BulkCreateMixin, BulkUpdateMixin, ValuesViewset, Cop
         "id",
         "question",
         "type",
-        "answers",
         "contentnode_id",
         "assessment_id",
         "hints",
@@ -192,6 +186,9 @@ class AssessmentItemViewSet(BulkCreateMixin, BulkUpdateMixin, ValuesViewset, Cop
         "source_url",
         "randomize",
         "deleted",
+        'assessment_category',
+        'difficulity',
+        'answers',
     )
 
     field_map = {
@@ -274,3 +271,7 @@ class AssessmentItemViewSet(BulkCreateMixin, BulkUpdateMixin, ValuesViewset, Cop
                 )
             ],
         )
+
+class AnswersViewSet(viewsets.ModelViewSet):
+    queryset = Answers.objects.all()
+    serializer_class = AnswersSerializer

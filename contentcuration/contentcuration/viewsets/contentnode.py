@@ -192,6 +192,9 @@ class ContentNodeSerializer(BulkModelSerializer):
             "thumbnail_encoding",
             "parent",
             "complete",
+            "learning_style",
+            "reference",
+            "apps"
         )
         list_serializer_class = ContentNodeListSerializer
         nested_writes = True
@@ -361,6 +364,9 @@ class ContentNodeViewSet(BulkUpdateMixin, CopyMixin, MoveMixin, ValuesViewset):
         "parent_id",
         "complete",
         "lft",
+        "learning_style",
+        "reference",
+        "apps"
     )
 
     field_map = {

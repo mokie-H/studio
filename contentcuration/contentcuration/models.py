@@ -678,7 +678,10 @@ class Channel(models.Model):
         verbose_name="languages",
         blank=True,
     )
-
+    grade = models.IntegerField(default=0)
+    reference = models.CharField(max_length=100,blank=True, null=True)
+    course_field = models.CharField(max_length=100,blank=True, null=True)
+    
     _field_updates = FieldTracker(fields=[
         # Field to watch for changes
         "description",
@@ -1032,6 +1035,19 @@ class ContentNode(MPTTModel, models.Model):
 
     role_visibility = models.CharField(max_length=50, choices=roles.choices, default=roles.LEARNER)
     freeze_authoring_data = models.BooleanField(default=False)
+
+    LEARNING_STYLES = [
+    ('AC', 'Activist'),
+    ('RE', 'Reflector'),
+    ('TH', 'Theorist'),
+    ('PR', 'Pragmatist'),
+    ('KI', 'Kinestic'),
+    ('AU', 'Auditory')
+    ]
+
+    learning_style = models.CharField(max_length=2,choices=LEARNING_STYLES,default='AC')
+    reference = models.CharField(max_length=100,blank=True, null=True)
+    apps = models.TextField(blank=True)
 
     objects = CustomContentNodeTreeManager()
 
@@ -1441,7 +1457,6 @@ class AssessmentItem(models.Model):
     type = models.CharField(max_length=50, default="multiplechoice")
     question = models.TextField(blank=True)
     hints = models.TextField(default="[]")
-    answers = models.TextField(default="[]")
     order = models.IntegerField(default=1)
     contentnode = models.ForeignKey('ContentNode', related_name="assessment_items", blank=True, null=True,
                                     db_index=True)
@@ -1452,11 +1467,32 @@ class AssessmentItem(models.Model):
     randomize = models.BooleanField(default=False)
     deleted = models.BooleanField(default=False)
 
+    ASSESSMENT_CATEGORY = [
+    ('HW', 'Homework'),
+    ('CW', 'Classwork'),
+    ('T', 'Test'),
+    ('IW', 'Individualwork'),
+    ('GW', 'Groupwoek')
+    ]
+    assessment_category = models.CharField(max_length=10,choices=ASSESSMENT_CATEGORY, default= 'HW') 
+    difficulity = models.CharField(max_length=10, choices = [('E', 'Easy'),('M','Medium'), ('H', 'Hard')], default = 'E')
+    
+    def __str__(self):
+        return self.question
+
     class Meta:
         indexes = [
             models.Index(fields=["assessment_id"], name=ASSESSMENT_ID_INDEX_NAME),
         ]
 
+class Answers(models.Model):
+    question = models.ForeignKey(AssessmentItem,related_name="answers", on_delete=models.CASCADE)
+    answer = models.CharField(max_length=50)
+    correct_answer = models.BooleanField()
+    feedback = models.CharField(max_length=50)
+
+    def __str__(self):        
+        return self.question
 
 class SlideshowSlide(models.Model):
     contentnode = models.ForeignKey('ContentNode', related_name="slideshow_slides", blank=True, null=True,

@@ -240,6 +240,9 @@ class ChannelSerializer(BulkModelSerializer):
             "source_domain",
             "source_url",
             "demo_server_url",
+            "grade",
+            "reference",
+            "course_field"
         )
         read_only_fields = ("version",)
         list_serializer_class = BulkListSerializer
@@ -342,6 +345,9 @@ base_channel_values = (
     "staging_tree__id",
     "source_url",
     "demo_server_url",
+    "grade",
+    "reference",
+    "course_field"
 )
 
 channel_field_map = {

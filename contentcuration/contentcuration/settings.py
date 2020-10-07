@@ -56,7 +56,7 @@ PERMISSION_TEMPLATE_ROOT = os.path.join(BASE_DIR, "contentcuration", "templates"
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or '_s0k@&o%m6bzg7s(0p(w6z5xbo%vy%mj+xx(w3mhs=f0ve0+h2'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+DEBUG = True
 
 SESSION_COOKIE_NAME = 'kolibri_studio_sessionid'
 

@@ -44,7 +44,7 @@ from contentcuration.models import FormatPreset
 from contentcuration.models import Language
 from contentcuration.models import License
 from contentcuration.models import Task
-from contentcuration.viewsets.assessmentitem import AssessmentItemViewSet
+from contentcuration.viewsets.assessmentitem import AssessmentItemViewSet, AnswersViewSet
 from contentcuration.viewsets.channel import AdminChannelViewSet
 from contentcuration.viewsets.channel import CatalogViewSet
 from contentcuration.viewsets.channel import ChannelViewSet
@@ -166,6 +166,7 @@ router.register(r'user', UserViewSet)
 router.register(r'invitation', InvitationViewSet)
 router.register(r'contentnode', ContentNodeViewSet)
 router.register(r'assessmentitem', AssessmentItemViewSet)
+router.register(r'answers', AnswersViewSet)
 router.register(r'admin-users', AdminUserViewSet, base_name='admin-users')
 router.register(r'clipboard', ClipboardViewSet, base_name='clipboard')
 
