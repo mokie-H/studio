@@ -210,6 +210,7 @@ class ContentNodeSerializer(BulkModelSerializer):
             "thumbnail_encoding",
             "parent",
             "complete",
+            "tags",
             "learning_style",
             "reference",
             "apps"
@@ -262,7 +263,7 @@ def retrieve_thumbail_src(item):
 
 def get_title(item):
     # If it's the root, use the channel name (should be original channel name)
-    return item["title"] if item["parent_id"] else item["original_channel_name"]
+    return item["title"] if "parent_id" in item and item["parent_id"] else item["original_channel_name"]
 
 
 def copy_tags(from_node, to_channel_id, to_node):

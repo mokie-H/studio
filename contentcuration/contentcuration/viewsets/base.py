@@ -797,16 +797,17 @@ class MoveMixin(object):
 
 
 class RequiredFilterSet(FilterSet):
-    @property
-    def qs(self):
-        has_filtering_queries = False
-        if self.form.is_valid():
-            for name, filter_ in self.filters.items():
-                value = self.form.cleaned_data.get(name)
+    # @property
+    # def qs(self):
+    #     has_filtering_queries = False
+    #     if self.form.is_valid():
+    #         for name, filter_ in self.filters.items():
+    #             value = self.form.cleaned_data.get(name)
 
-                if value not in EMPTY_VALUES:
-                    has_filtering_queries = True
-                    break
-        if not has_filtering_queries:
-            raise MissingRequiredParamsException("No valid filter parameters supplied")
-        return super(FilterSet, self).qs
+    #             if value not in EMPTY_VALUES:
+    #                 has_filtering_queries = True
+    #                 break
+    #     if not has_filtering_queries:
+    #         raise MissingRequiredParamsException("No valid filter parameters supplied")
+    #     return super(FilterSet, self).qs
+    pass

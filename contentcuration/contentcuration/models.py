@@ -737,6 +737,9 @@ class Channel(models.Model):
         "version",
     ])
 
+    def __str__(self):
+        return self.name
+        
     @classmethod
     def filter_edit_queryset(cls, queryset, user):
         user_id = not user.is_anonymous() and user.id
@@ -1690,7 +1693,7 @@ class Answers(models.Model):
     feedback = models.CharField(max_length=50)
 
     def __str__(self):        
-        return self.question
+        return self.answer
 
 class SlideshowSlide(models.Model):
     contentnode = models.ForeignKey('ContentNode', related_name="slideshow_slides", blank=True, null=True,

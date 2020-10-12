@@ -132,7 +132,22 @@ class AssessmentItemSerializer(BulkModelSerializer):
 
     class Meta:
         model = AssessmentItem
-        fields = '__all__'
+        fields = (
+            "id",
+            "question",
+            "type",
+            "contentnode",
+            "assessment_id",
+            "hints",
+            "raw_data",
+            "order",
+            "source_url",
+            "randomize",
+            "deleted",
+            "assessment_category",
+            "difficulity",
+            "answers",
+        )
         list_serializer_class = AssessmentListSerializer
         # Use the contentnode and assessment_id as the lookup field for updates
         update_lookup_field = ("contentnode", "assessment_id")

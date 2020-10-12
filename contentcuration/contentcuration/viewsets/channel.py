@@ -90,18 +90,18 @@ base_channel_filter_fields = (
 class BaseChannelFilter(RequiredFilterSet):
     published = BooleanFilter(name="main_tree__published")
     id__in = UUIDInFilter(name="id")
-    keywords = CharFilter(method="filter_keywords")
-    languages = CharFilter(method="filter_languages")
-    licenses = CharFilter(method="filter_licenses")
-    kinds = CharFilter(method="filter_kinds")
-    coach = BooleanFilter(method="filter_coach")
-    assessments = BooleanFilter(method="filter_assessments")
-    subtitles = BooleanFilter(method="filter_subtitles")
-    collection = CharFilter(method="filter_collection")
-    deleted = BooleanFilter(method="filter_deleted")
-    staged = BooleanFilter(method="filter_staged")
-    public = BooleanFilter(method="filter_public")
-    cheffed = BooleanFilter(method="filter_cheffed")
+    keywords = CharFilter(method="filter_keywords", label="keywords")
+    languages = CharFilter(method="filter_languages", label= "languages")
+    licenses = CharFilter(method="filter_licenses", label="licenses")
+    kinds = CharFilter(method="filter_kinds", label="kinds")
+    coach = BooleanFilter(method="filter_coach", label="coach")
+    assessments = BooleanFilter(method="filter_assessments", label="assessments")
+    subtitles = BooleanFilter(method="filter_subtitles", label="subtitles")
+    collection = CharFilter(method="filter_collection", label="collection")
+    deleted = BooleanFilter(method="filter_deleted", label="deleted")
+    staged = BooleanFilter(method="filter_staged", label="staged")
+    public = BooleanFilter(method="filter_public", label="public")
+    cheffed = BooleanFilter(method="filter_cheffed", label="cheffed")
     exclude = CharFilter(name="id", method="filter_excluded_id")
 
     def __init__(self, *args, **kwargs):
@@ -208,9 +208,9 @@ class BaseChannelFilter(RequiredFilterSet):
 
 
 class ChannelFilter(BaseChannelFilter):
-    edit = BooleanFilter(method="filter_edit")
-    view = BooleanFilter(method="filter_view")
-    bookmark = BooleanFilter(method="filter_bookmark")
+    edit = BooleanFilter(method="filter_edit", label="edit")
+    view = BooleanFilter(method="filter_view", label="view")
+    bookmark = BooleanFilter(method="filter_bookmark", label="bookmark")
 
     def filter_edit(self, queryset, name, value):
         return queryset.filter(edit=True)
