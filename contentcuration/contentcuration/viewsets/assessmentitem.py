@@ -17,7 +17,7 @@ from contentcuration.models import ContentNode
 from contentcuration.models import File
 from contentcuration.models import generate_object_storage_name
 from contentcuration.models import User
-from contentcuration.models import Answers
+from contentcuration.models import Answer
 from contentcuration.viewsets.base import BulkCreateMixin
 from contentcuration.viewsets.base import BulkListSerializer
 from contentcuration.viewsets.base import BulkModelSerializer
@@ -63,7 +63,6 @@ def get_filenames_from_assessment(assessment_item):
         exercise_image_filename_regex.findall(
             str(
                 assessment_item.question
-                + assessment_item.answers
                 + assessment_item.hints
             )
         )
@@ -116,16 +115,16 @@ class AssessmentListSerializer(BulkListSerializer):
         self.set_files(all_objects)
         return all_objects
 
-class AnswersSerializer(ModelSerializer):
+class AnswerSerializer(ModelSerializer):
     class Meta:
-        model = Answers
+        model = Answer
         fields = '__all__'
 
 class AssessmentItemSerializer(BulkModelSerializer):
     # This is set as editable=False on the model so by default DRF does not allow us
     # to set it.
     assessment_id = UUIDRegexField()
-    answers = AnswersSerializer(many=True, read_only=True) 
+    answers = AnswerSerializer(many=True, read_only=True) 
     contentnode = UserFilteredPrimaryKeyRelatedField(
         queryset=ContentNode.objects.all(), required=False
     )
@@ -230,6 +229,6 @@ class AssessmentItemViewSet(BulkCreateMixin, BulkUpdateMixin, ValuesViewset, Cop
             ],
         )
 
-class AnswersViewSet(viewsets.ModelViewSet):
-    queryset = Answers.objects.all()
-    serializer_class = AnswersSerializer
+class AnswerViewSet(viewsets.ModelViewSet):
+    queryset = Answer.objects.all()
+    serializer_class = AnswerSerializer

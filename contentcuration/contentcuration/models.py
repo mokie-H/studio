@@ -1635,6 +1635,7 @@ class AssessmentItem(models.Model):
         indexes = [
             models.Index(fields=["assessment_id"], name=ASSESSMENT_ID_INDEX_NAME),
         ]
+        ordering = ['id']
 
     _edit_filter = Q()
     for tree_name in CHANNEL_TREES:
@@ -1686,7 +1687,7 @@ class AssessmentItem(models.Model):
 
         return queryset
 
-class Answers(models.Model):
+class Answer(models.Model):
     question = models.ForeignKey(AssessmentItem,related_name="answers", on_delete=models.CASCADE)
     answer = models.CharField(max_length=50)
     correct_answer = models.BooleanField()
