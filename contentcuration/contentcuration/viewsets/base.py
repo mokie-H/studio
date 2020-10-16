@@ -350,193 +350,194 @@ class BulkListSerializer(SimpleReprMixin, ListSerializer):
 
 
 class ReadOnlyValuesViewset(SimpleReprMixin, ReadOnlyModelViewSet):
-    """
-    A viewset that uses a values call to get all model/queryset data in
-    a single database query, rather than delegating serialization to a
-    DRF ModelSerializer.
-    """
+    # """
+    # A viewset that uses a values call to get all model/queryset data in
+    # a single database query, rather than delegating serialization to a
+    # DRF ModelSerializer.
+    # """
 
-    # A tuple of values to get from the queryset
-    values = None
-    # A map of target_key, source_key where target_key is the final target_key that will be set
-    # and source_key is the key on the object retrieved from the values call.
-    # Alternatively, the source_key can be a callable that will be passed the object and return
-    # the value for the target_key. This callable can also pop unwanted values from the obj
-    # to remove unneeded keys from the object as a side effect.
-    field_map = {}
+    # # A tuple of values to get from the queryset
+    # values = None
+    # # A map of target_key, source_key where target_key is the final target_key that will be set
+    # # and source_key is the key on the object retrieved from the values call.
+    # # Alternatively, the source_key can be a callable that will be passed the object and return
+    # # the value for the target_key. This callable can also pop unwanted values from the obj
+    # # to remove unneeded keys from the object as a side effect.
+    # field_map = {}
 
-    def __init__(self, *args, **kwargs):
-        viewset = super(ReadOnlyValuesViewset, self).__init__(*args, **kwargs)
-        if not isinstance(self.values, tuple):
-            raise TypeError("values must be defined as a tuple")
-        self._values = tuple(self.values)
-        if not isinstance(self.field_map, dict):
-            raise TypeError("field_map must be defined as a dict")
-        self._field_map = self.field_map.copy()
-        return viewset
+    # def __init__(self, *args, **kwargs):
+    #     viewset = super(ReadOnlyValuesViewset, self).__init__(*args, **kwargs)
+    #     if not isinstance(self.values, tuple):
+    #         raise TypeError("values must be defined as a tuple")
+    #     self._values = tuple(self.values)
+    #     if not isinstance(self.field_map, dict):
+    #         raise TypeError("field_map must be defined as a dict")
+    #     self._field_map = self.field_map.copy()
+    #     return viewset
 
-    @classmethod
-    def id_attr(cls):
-        if cls.serializer_class is not None and hasattr(
-            cls.serializer_class, "id_attr"
-        ):
-            return cls.serializer_class.id_attr()
-        return None
+    # @classmethod
+    # def id_attr(cls):
+    #     if cls.serializer_class is not None and hasattr(
+    #         cls.serializer_class, "id_attr"
+    #     ):
+    #         return cls.serializer_class.id_attr()
+    #     return None
 
-    @classmethod
-    def values_from_key(cls, key):
-        """
-        Method to return an iterable that can be used as arguments for dict
-        to return the values from key.
-        Key is either a string, in which case the key is a singular value
-        or a list, in which case the key is a combined value.
-        """
-        id_attr = cls.id_attr()
+    # @classmethod
+    # def values_from_key(cls, key):
+    #     """
+    #     Method to return an iterable that can be used as arguments for dict
+    #     to return the values from key.
+    #     Key is either a string, in which case the key is a singular value
+    #     or a list, in which case the key is a combined value.
+    #     """
+    #     id_attr = cls.id_attr()
 
-        if id_attr:
-            if isinstance(id_attr, str):
-                # Singular value
-                # Just return the single id_attr and the original key
-                return [(id_attr, key)]
-            else:
-                # Multiple values in the key, zip together the id_attr and the key
-                # to create key, value pairs for a dict
-                # Order in the key matters, and must match the "update_lookup_field"
-                # property of the serializer.
-                return [(attr, value) for attr, value in zip(id_attr, key)]
-        return []
+    #     if id_attr:
+    #         if isinstance(id_attr, str):
+    #             # Singular value
+    #             # Just return the single id_attr and the original key
+    #             return [(id_attr, key)]
+    #         else:
+    #             # Multiple values in the key, zip together the id_attr and the key
+    #             # to create key, value pairs for a dict
+    #             # Order in the key matters, and must match the "update_lookup_field"
+    #             # property of the serializer.
+    #             return [(attr, value) for attr, value in zip(id_attr, key)]
+    #     return []
 
-    @classmethod
-    def filter_queryset_from_keys(cls, queryset, keys):
-        """
-        Method to filter a queryset based on keys.
-        """
-        id_attr = cls.id_attr()
+    # @classmethod
+    # def filter_queryset_from_keys(cls, queryset, keys):
+    #     """
+    #     Method to filter a queryset based on keys.
+    #     """
+    #     id_attr = cls.id_attr()
 
-        if id_attr:
-            if isinstance(id_attr, str):
-                # In the case of single valued keys, this is just an __in lookup
-                return queryset.filter(**{"{}__in".format(id_attr): keys})
-            else:
-                # If id_attr is multivalued we need to do an ORed lookup for each
-                # set of values represented by a key.
-                # This is probably not as performant as the simple __in query
-                # improvements welcome!
-                query = Q()
-                for key in keys:
-                    query |= Q(**{attr: value for attr, value in zip(id_attr, key)})
-                return queryset.filter(query)
-        return queryset.none()
+    #     if id_attr:
+    #         if isinstance(id_attr, str):
+    #             # In the case of single valued keys, this is just an __in lookup
+    #             return queryset.filter(**{"{}__in".format(id_attr): keys})
+    #         else:
+    #             # If id_attr is multivalued we need to do an ORed lookup for each
+    #             # set of values represented by a key.
+    #             # This is probably not as performant as the simple __in query
+    #             # improvements welcome!
+    #             query = Q()
+    #             for key in keys:
+    #                 query |= Q(**{attr: value for attr, value in zip(id_attr, key)})
+    #             return queryset.filter(query)
+    #     return queryset.none()
 
-    def get_serializer_class(self):
-        if self.serializer_class is not None:
-            return self.serializer_class
-        # Hack to prevent the renderer logic from breaking completely.
-        return Serializer
+    # def get_serializer_class(self):
+    #     if self.serializer_class is not None:
+    #         return self.serializer_class
+    #     # Hack to prevent the renderer logic from breaking completely.
+    #     return Serializer
 
-    def get_queryset(self):
-        queryset = super(ReadOnlyValuesViewset, self).get_queryset()
-        if self.request.user.is_admin:
-            return queryset
-        if hasattr(queryset.model, "filter_view_queryset"):
-            return queryset.model.filter_view_queryset(queryset, self.request.user)
-        return queryset
+    # def get_queryset(self):
+    #     queryset = super(ReadOnlyValuesViewset, self).get_queryset()
+    #     if self.request.user.is_admin:
+    #         return queryset
+    #     if hasattr(queryset.model, "filter_view_queryset"):
+    #         return queryset.model.filter_view_queryset(queryset, self.request.user)
+    #     return queryset
 
-    def get_edit_queryset(self):
-        """
-        Return a filtered copy of the queryset to only the objects
-        that a user is able to edit, rather than view.
-        """
-        queryset = super(ReadOnlyValuesViewset, self).get_queryset()
-        if self.request.user.is_admin:
-            return queryset
-        if hasattr(queryset.model, "filter_edit_queryset"):
-            return queryset.model.filter_edit_queryset(queryset, self.request.user)
-        return self.get_queryset()
+    # def get_edit_queryset(self):
+    #     """
+    #     Return a filtered copy of the queryset to only the objects
+    #     that a user is able to edit, rather than view.
+    #     """
+    #     queryset = super(ReadOnlyValuesViewset, self).get_queryset()
+    #     if self.request.user.is_admin:
+    #         return queryset
+    #     if hasattr(queryset.model, "filter_edit_queryset"):
+    #         return queryset.model.filter_edit_queryset(queryset, self.request.user)
+    #     return self.get_queryset()
 
-    def _get_object_from_queryset(self, queryset):
-        """
-        Returns the object the view is displaying.
-        We override this to remove the DRF default behaviour
-        of filtering the queryset.
-        (rtibbles) There doesn't seem to be a use case for
-        querying a detail endpoint and also filtering by query
-        parameters that might result in a 404.
-        """
-        # Perform the lookup filtering.
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+    # def _get_object_from_queryset(self, queryset):
+    #     """
+    #     Returns the object the view is displaying.
+    #     We override this to remove the DRF default behaviour
+    #     of filtering the queryset.
+    #     (rtibbles) There doesn't seem to be a use case for
+    #     querying a detail endpoint and also filtering by query
+    #     parameters that might result in a 404.
+    #     """
+    #     # Perform the lookup filtering.
+    #     lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
 
-        assert lookup_url_kwarg in self.kwargs, (
-            "Expected view %s to be called with a URL keyword argument "
-            'named "%s". Fix your URL conf, or set the `.lookup_field` '
-            "attribute on the view correctly."
-            % (self.__class__.__name__, lookup_url_kwarg)
-        )
+    #     assert lookup_url_kwarg in self.kwargs, (
+    #         "Expected view %s to be called with a URL keyword argument "
+    #         'named "%s". Fix your URL conf, or set the `.lookup_field` '
+    #         "attribute on the view correctly."
+    #         % (self.__class__.__name__, lookup_url_kwarg)
+    #     )
 
-        filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-        obj = get_object_or_404(queryset, **filter_kwargs)
+    #     filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+    #     obj = get_object_or_404(queryset, **filter_kwargs)
 
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
+    #     # May raise a permission denied
+    #     self.check_object_permissions(self.request, obj)
 
-        return obj
+    #     return obj
 
-    def get_object(self):
-        return self._get_object_from_queryset(self.get_queryset())
+    # def get_object(self):
+    #     return self._get_object_from_queryset(self.get_queryset())
 
-    def get_edit_object(self):
-        return self._get_object_from_queryset(self.get_edit_queryset())
+    # def get_edit_object(self):
+    #     return self._get_object_from_queryset(self.get_edit_queryset())
 
-    def annotate_queryset(self, queryset):
-        return queryset
+    # def annotate_queryset(self, queryset):
+    #     return queryset
 
-    def prefetch_queryset(self, queryset):
-        return queryset
+    # def prefetch_queryset(self, queryset):
+    #     return queryset
 
-    def _map_fields(self, item):
-        for key, value in self._field_map.items():
-            if callable(value):
-                item[key] = value(item)
-            elif value in item:
-                item[key] = item.pop(value)
-            else:
-                item[key] = value
-        return item
+    # def _map_fields(self, item):
+    #     for key, value in self._field_map.items():
+    #         if callable(value):
+    #             item[key] = value(item)
+    #         elif value in item:
+    #             item[key] = item.pop(value)
+    #         else:
+    #             item[key] = value
+    #     return item
 
-    def consolidate(self, items, queryset):
-        return items
+    # def consolidate(self, items, queryset):
+    #     return items
 
-    def _cast_queryset_to_values(self, queryset):
-        queryset = self.annotate_queryset(queryset)
-        return queryset.values(*self._values)
+    # def _cast_queryset_to_values(self, queryset):
+    #     queryset = self.annotate_queryset(queryset)
+    #     return queryset.values(*self._values)
 
-    def serialize(self, queryset):
-        return self.consolidate(list(map(self._map_fields, queryset or [])), queryset)
+    # def serialize(self, queryset):
+    #     return self.consolidate(list(map(self._map_fields, queryset or [])), queryset)
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.prefetch_queryset(self.get_queryset()))
-        queryset = self._cast_queryset_to_values(queryset)
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.prefetch_queryset(self.get_queryset()))
+    #     queryset = self._cast_queryset_to_values(queryset)
 
-        page = self.paginate_queryset(queryset)
+    #     page = self.paginate_queryset(queryset)
 
-        if page is not None:
-            return self.get_paginated_response(self.serialize(page))
+    #     if page is not None:
+    #         return self.get_paginated_response(self.serialize(page))
 
-        return Response(self.serialize(queryset))
+    #     return Response(self.serialize(queryset))
 
-    def serialize_object(self, pk):
-        queryset = self.prefetch_queryset(self.get_queryset())
-        try:
-            return self.serialize(
-                self._cast_queryset_to_values(queryset.filter(pk=pk))
-            )[0]
-        except IndexError:
-            raise Http404(
-                "No %s matches the given query." % queryset.model._meta.object_name
-            )
+    # def serialize_object(self, pk):
+    #     queryset = self.prefetch_queryset(self.get_queryset())
+    #     try:
+    #         return self.serialize(
+    #             self._cast_queryset_to_values(queryset.filter(pk=pk))
+    #         )[0]
+    #     except IndexError:
+    #         raise Http404(
+    #             "No %s matches the given query." % queryset.model._meta.object_name
+    #         )
 
-    def retrieve(self, request, pk, *args, **kwargs):
-        return Response(self.serialize_object(pk))
+    # def retrieve(self, request, pk, *args, **kwargs):
+    #     return Response(self.serialize_object(pk))
+    pass
 
 
 class ValuesViewset(ReadOnlyValuesViewset, DestroyModelMixin):
